@@ -2,5 +2,7 @@
 name = "oyster"
 version = "0.1.1"
 edition = "2021"
+description = "A web server"
+license = "MIT"
 
 [dependencies]
