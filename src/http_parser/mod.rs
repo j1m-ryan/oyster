@@ -1,11 +1,14 @@
-use std::error::Error;
+use std::collections::HashMap;
 use std::fmt;
+use std::str::Lines;
 
 #[derive(Debug)]
 pub struct HTTPRequest {
     pub method: Method,
     pub path: String,
     pub http_version: HTTPVersion,
+    pub headers: HashMap<String, String>,
+    pub hostname: String,
 }
 
 struct TopLine {
@@ -51,11 +54,18 @@ pub fn parse_request(request: &str) -> Result<HTTPRequest, ParseError> {
     if let Some(top_line) = top_line_opt {
         let parsed_top_line_opt = parse_top_line(top_line);
         if let Ok(parsed_top_line) = parsed_top_line_opt {
-            return Ok(HTTPRequest {
-                method: parsed_top_line.method,
-                path: parsed_top_line.path,
-                http_version: parsed_top_line.http_version,
-            });
+            let headers = parse_headers(&mut lines);
+            let host = headers.get("host");
+            if let Some(host) = host {
+                let hostname = parse_hostname(host.to_string());
+                return Ok(HTTPRequest {
+                    method: parsed_top_line.method,
+                    path: parsed_top_line.path,
+                    http_version: parsed_top_line.http_version,
+                    hostname,
+                    headers,
+                });
+            }
         }
     }
     Err(ParseError::MissingTopLine)
@@ -109,4 +119,24 @@ fn parse_http_version(http_version: &str) -> Result<HTTPVersion, ParseError> {
         "HTTP/1.1" => Ok(HTTPVersion::OnePointOne),
         _ => Err(ParseError::InvalidHTTPVersion),
     }
+}
+
+fn parse_headers(lines: &mut Lines) -> HashMap<String, String> {
+    let mut headers = HashMap::new();
+    for line in lines.into_iter() {
+        let parts_opt = line.split_once(": ");
+        if let Some(parts) = parts_opt {
+            let (header, value) = parts;
+            headers.insert(header.to_lowercase(), value.to_string());
+        }
+    }
+    return headers;
+}
+
+fn parse_hostname(host: String) -> String {
+    let splits = host.split_once(":");
+    if let Some((host, _port)) = splits {
+        return host.to_string();
+    }
+    "".to_string()
 }
