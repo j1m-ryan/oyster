@@ -138,5 +138,5 @@ fn parse_hostname(host: String) -> String {
     if let Some((host, _port)) = splits {
         return host.to_string();
     }
-    "".to_string()
+    host
 }
