@@ -130,7 +130,7 @@ fn parse_headers(lines: &mut Lines) -> HashMap<String, String> {
             headers.insert(header.to_lowercase(), value.to_string());
         }
     }
-    return headers;
+    headers
 }
 
 fn parse_hostname(host: String) -> String {
