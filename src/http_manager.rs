@@ -1,4 +1,6 @@
+use crate::thread_pool::ThreadPool;
 use crate::HTTPServer;
+use std::sync::Arc;
 
 pub struct HTTPManager {
     servers: Vec<HTTPServer>,
@@ -11,11 +13,11 @@ impl HTTPManager {
         }
     }
 
-    pub fn start(&self) {
+    pub fn start(&self, thread_pool: Arc<ThreadPool>) {
         let mut handles = Vec::new();
 
         for server in &self.servers {
-            let handle = server.start();
+            let handle = server.start(Arc::clone(&thread_pool));
             handles.push(handle);
         }
 

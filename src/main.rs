@@ -1,8 +1,9 @@
-use oyster::HTTPServer;
-use oyster::Oyster;
+use oyster::{HTTPServer, MainConfig, Oyster};
 
 fn main() {
-    let mut oyster = Oyster::new();
+    let mut oyster = Oyster::new(MainConfig {
+        worker_threads: Some(16),
+    });
 
     let mut main_server = HTTPServer {
         http_port: 3000,

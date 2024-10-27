@@ -1,5 +1,6 @@
 use crate::http_parser::HTTPRequest;
 use crate::response::Response;
+use crate::thread_pool::ThreadPool;
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
@@ -36,7 +37,7 @@ impl HTTPServer {
         routes.insert(path.to_string(), Box::new(f));
     }
 
-    pub fn start(&self) -> std::thread::JoinHandle<()> {
+    pub fn start(&self, thread_pool: Arc<ThreadPool>) -> std::thread::JoinHandle<()> {
         let port = self.http_port;
         let routes = Arc::clone(&self.routes);
         let server_name = self.server_name.clone();
@@ -49,9 +50,13 @@ impl HTTPServer {
                 let stream = stream.unwrap();
                 let routes = Arc::clone(&routes);
                 let server_name = server_name.clone();
-                std::thread::spawn(move || {
+                let thread_pool = Arc::clone(&thread_pool);
+
+                let task = move || {
                     handle_client(stream, routes, server_name);
-                });
+                };
+
+                thread_pool.execute(task);
             }
         });
 
