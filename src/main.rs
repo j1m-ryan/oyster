@@ -2,7 +2,7 @@ use oyster::{HTTPServer, MainConfig, Oyster};
 
 fn main() {
     let mut oyster = Oyster::new(MainConfig {
-        worker_threads: None,
+        worker_threads: Some(16),
     });
 
     let mut main_server = HTTPServer {
